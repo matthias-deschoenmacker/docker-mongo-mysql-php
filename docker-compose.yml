@@ -1,0 +1,69 @@
+# docker-compose.yml
+version: "3.8"
+services:
+  nginx:
+    container_name: nginx
+    build: ./docker/nginx
+    command: nginx -g "daemon off;"
+    links:
+      - php
+    ports:
+      - "80:80"
+    volumes:
+      - ./src:/var/www/html
+  php:
+    container_name: php
+    build: ./docker/php
+    links:
+      - mysql
+      - mongo
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./src:/var/www/html
+    working_dir: /var/www/html
+  mysql:
+    image: mysql:8.0.27
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_DATABASE: eventsourcing
+      MYSQL_USER: eventsourcing
+      MYSQL_PASSWORD: 'root'
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database/mysql:/var/lib/mysql
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: pma
+    links:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    restart: always
+    ports:
+      - 8085:80
+  mongo:
+    image: mongo:5.0
+    container_name: mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./database/mongodb/db:/data/db
+      - ./database/mongodb/dev.archive:/Databases/dev.archive
+      - ./database/mongodb/production:/Databases/production
+    command: [--auth]
+  composer:
+    container_name: composer
+    image: composer
+    volumes:
+      - ./src:/var/www/html
+    working_dir: /var/www/html
+    command: install --ignore-platform-reqs

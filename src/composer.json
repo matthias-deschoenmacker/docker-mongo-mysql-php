@@ -1,0 +1,9 @@
+{
+    "require": {
+        "mongodb/mongodb": "^1.13",
+        "nesbot/carbon": "^2.60.0"
+    },
+    "autoload": {
+        "classmap": ["App"]
+    }
+}
